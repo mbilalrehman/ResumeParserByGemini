@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>NexHire Resume Parser (Simple)</title>
+    <style>
+        #loading { display: none; text-align: center; padding: 20px; }
+        /* Simple error/message box */
+        .alert { padding: 1rem; margin-bottom: 1rem; border-radius: 0.5rem; }
+        .alert-danger { background-color: #fef2f2; color: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="relative isolate overflow-hidden bg-gray-900">
+        <div class="mx-auto max-w-7xl px-6 pb-24 pt-10 sm:pb-32 lg:flex lg:px-8 lg:py-40">
+            <div class="mx-auto max-w-2xl flex-shrink-0 lg:mx-0 lg:max-w-xl lg:pt-8">
+                <h1 class="mt-10 text-4xl font-bold tracking-tight text-white sm:text-5xl">
+                    NexHire AI Parser (Simplified)
+                </h1>
+                <p class="mt-6 text-lg leading-8 text-gray-300">
+                    Effortlessly Parse Resumes & Find the Perfect Candidate with Gemini AI. (No DB/Login)
+                </p>
+                
+                <!-- Upload Form -->
+                <form id="uploadForm" action="/process" method="post" enctype="multipart/form-data" class="mt-10">
+                    <input type="file" name="pdf_doc" id="pdf_doc" accept=".pdf,.docx" 
+                           class="bg-white text-gray-900 border border-blue-300 py-2 px-4 rounded-lg block w-full text-sm">
+                    <button type="submit" onclick="showLoading()" 
+                            class="mt-4 bg-blue-500 px-6 py-2 rounded-lg text-white shadow-md hover:bg-blue-400">
+                        Process Resume
+                    </button>
+                </form>
+
+                <!-- Processing Icon -->
+                <div id="loading">
+                    <p class="text-white mt-2">Processing your resume... (Gemini AI is thinking)</p>
+                </div>
+            </div>
+
+            <!-- Scanner Image -->
+            <div class="mx-auto mt-16 flex max-w-2xl sm:mt-24 lg:ml-10 lg:mr-0 lg:mt-40 lg:max-w-none lg:flex-none xl:ml-32">
+                <div class="max-w-3xl flex-none sm:max-w-5xl lg:max-w-none">
+                    <img src="https://res.cloudinary.com/dtsuvx8dz/image/upload/v1716357077/o1imiun4wwcpia9uucgs.gif"
+                         alt="Scanning Resume..." width="2432" height="1442"
+                         class="w-[15rem] rounded-md bg-white/5 shadow-2xl ring-1 ring-white/10">
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Message Display -->
+        {% if error %}
+        <div class="max-w-4xl mx-auto -mt-16 mb-10">
+            <div class="alert alert-danger">
+                <h4 class="font-bold">Error!</h4>
+                <p>{{ error }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Extracted Data Section (Sirf tab dikhayn jab data ho) -->
+        {% if data and not data.error %}
+        <div class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md -mt-16 mb-20">
+            <h2 class="text-2xl font-semibold text-gray-900">Extracted Resume Data</h2>
+            <form id="resumeForm" class="mt-4">
+                
+                <!-- Personal Info -->
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-gray-700">First Name:</label>
+                        <input type="text" name="first_name" value="{{ data['First Name'] }}" 
+                               class="w-full p-2 border rounded-lg text-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700">Middle Name:</label>
+                        <input type="text" name="middle_name" value="{{ data['Middle Name'] }}" 
+                               class="w-full p-2 border rounded-lg text-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700">Last Name:</label>
+                        <input type="text" name="last_name" value="{{ data['Last Name'] }}" 
+                               class="w-full p-2 border rounded-lg text-gray-900">
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label class="block text-gray-700">Email:</label>
+                        <input type="email" name="email" value="{{ data['Email ID'] }}" 
+                               class="w-full p-2 border rounded-lg text-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700">Phone Number:</label>
+                        <input type="text" name="phone" value="{{ data['Phone Number'] }}" 
+                               class="w-full p-2 border rounded-lg text-gray-900">
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <label class="block text-gray-700">Location:</label>
+                    <input type="text" name="location" value="{{ data['Location'] }}" 
+                           class="w-full p-2 border rounded-lg text-gray-900">
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label class="block text-gray-700">LinkedIn:</label>
+                        <input type="text" name="linkedin" value="{{ data['LinkedIn ID'] }}" 
+                               class="w-full p-2 border rounded-lg text-gray-900">
+                    </div>
+                    <div>
+                        <label class="block text-gray-700">GitHub Portfolio:</label>
+                        <input type="text" name="github" value="{{ data['GitHub Portfolio'] }}" 
+                               class="w-full p-2 border rounded-lg text-gray-900">
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="mt-4">
+                    <label class="block text-gray-700">Summary:</label>
+                    <textarea name="summary" class="w-full p-2 border rounded-lg text-gray-900" rows="4">{{ data['Summary'] }}</textarea>
+                </div>
+
+                <!-- Technical Skills -->
+                <div class="mt-4">
+                    <label class="block text-gray-700">Technical Skills:</label>
+                    <input type="text" name="technical_skills" value="{{ data['Technical Skills'] }}" 
+                           class="w-full p-2 border rounded-lg text-gray-900">
+                </div>
+
+                <!-- Soft Skills -->
+                <div class="mt-4">
+                    <label class="block text-gray-700">Soft Skills:</label>
+                    <textarea name="soft_skills" class="w-full p-2 border rounded-lg text-gray-900">{{ ", ".join(data['Soft Skills']) }}</textarea>
+                </div>
+
+                <!-- Education (Naya section) -->
+                <h3 class="text-xl font-semibold text-gray-800 mt-6">Education</h3>
+                <div id="educationDetails">
+                    {% for edu in data['Education'] %}
+                    <div class="border p-4 rounded-lg mt-2 grid md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-gray-700">Degree:</label>
+                            <input type="text" name="degree[]" value="{{ edu['Degree'] }}" 
+                                   class="w-full p-2 border rounded-lg text-gray-900">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700">Institution:</label>
+                            <input type="text" name="institution[]" value="{{ edu['Institution'] }}" 
+                                   class="w-full p-2 border rounded-lg text-gray-900">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700">Year:</label>
+                            <input type="text" name="year[]" value="{{ edu['Year'] }}" 
+                                   class="w-full p-2 border rounded-lg text-gray-900">
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Employment Details -->
+                <h3 class="text-xl font-semibold text-gray-800 mt-6">Employment Details</h3>
+                <div id="employmentDetails">
+                    {% for job in data['Employment Details'] %}
+                    <div class="border p-4 rounded-lg mt-2 grid md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-gray-700">Designation:</label>
+                            <input type="text" name="designation[]" value="{{ job['Designation'] }}" 
+                                   class="w-full p-2 border rounded-lg text-gray-900">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700">Organization:</label>
+                            <input type="text" name="organization[]" value="{{ job['Organization'] }}" 
+                                   class="w-full p-2 border rounded-lg text-gray-900">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700">Duration:</label>
+                            <input type="text" name="duration[]" value="{{ job['Duration'] }}" 
+                                   class="w-full p-2 border rounded-lg text-gray-900">
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Naya "Fake" Save Button -->
+                <button type="button" onclick="saveData()" 
+                        class="mt-6 bg-green-500 px-6 py-2 rounded-lg text-white shadow-md hover:bg-green-400">
+                    Save Changes
+                </button>
+            </form>
+        </div>
+
+        <script>
+            function showLoading() {
+                // Form check
+                if (document.getElementById('pdf_doc').files.length === 0) {
+                    alert('Please select a file first.');
+                    return false; // Submission ko rokein
+                }
+                document.getElementById('loading').style.display = "block";
+                
+                // Form ko submit honay dein
+                return true; 
+            }
+
+            // Naya "Fake" Save Function
+            function saveData() {
+                // Form data jama karne ki zaroorat nahi, lekin agar karna chahein toh kar saktay hain
+                // let formData = new FormData(document.getElementById('resumeForm'));
+                
+                fetch('/save_fake', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ "message": "Simulating save" }) // Thora data bhej dein
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Yahan alert dikhayein (Aapki request)
+                    alert(data.message);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while saving.');
+                });
+            }
+        </script>
+        {% endif %}
+    </div>
+</body>
+</html>
